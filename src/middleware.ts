@@ -1,6 +1,11 @@
+
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { auth } from '@/lib/firebase-admin';
+
+// By exporting runtime, we are explicitly telling Next.js to run this middleware on the Node.js runtime.
+// This is required to use Node.js modules like 'path' which firebase-admin depends on.
+export const runtime = 'nodejs'
 
 export async function middleware(request: NextRequest) {
   const session = request.cookies.get('__session')?.value;
@@ -15,7 +20,7 @@ export async function middleware(request: NextRequest) {
   if (session) {
     try {
       // Verify the session cookie. If it's invalid, it will throw an error.
-      const decodedClaims = await auth.verifySessionCookie(session, true);
+      await auth.verifySessionCookie(session, true);
       
       // If the user is authenticated and tries to access an auth page, redirect to dashboard.
       if (isAuthPage) {
@@ -23,12 +28,13 @@ export async function middleware(request: NextRequest) {
       }
     } catch (error) {
       // If verification fails, it's an invalid or expired session.
-      // Clear the faulty cookie and redirect to login if the page was protected.
-      const response = NextResponse.redirect(new URL('/login', request.url));
+      // We will clear the cookie and, if the page was protected, redirect to login.
+      const response = isProtected 
+        ? NextResponse.redirect(new URL('/login', request.url))
+        : NextResponse.next();
+      
       response.cookies.delete('__session');
-      if (isProtected) {
-        return response;
-      }
+      return response;
     }
   }
   

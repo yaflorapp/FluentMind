@@ -2,9 +2,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export const runtime = 'nodejs';
-
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const session = request.cookies.get('__session')?.value;
 
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup') || request.nextUrl.pathname.startsWith('/forgot-password');

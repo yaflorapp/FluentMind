@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { askAiTutorAction } from "@/app/tutor/actions";
-import { lessons } from "@/lib/placeholder-data";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,19 +9,39 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, Loader2, Bot, User, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { db } from "@/lib/firebase";
+import { collection, getDocs } from "firebase/firestore";
+import type { Lesson } from "@/lib/types";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
-const allLessonsContent = lessons.map(lesson => `Lesson: ${lesson.title}\nContent: ${lesson.content}`).join('\n\n---\n\n');
-
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [lessonContent, setLessonContent] = useState("");
+  const [isLessonsLoading, setIsLessonsLoading] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    async function fetchLessons() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "lessons"));
+            const fetchedLessons = querySnapshot.docs.map(doc => doc.data() as Lesson);
+            const allContent = fetchedLessons.map(lesson => `Lesson: ${lesson.title}\nContent: ${lesson.content}`).join('\n\n---\n\n');
+            setLessonContent(allContent);
+        } catch (error) {
+            console.error("Error fetching lesson content for tutor:", error);
+            setMessages([{ role: 'assistant', content: "I'm having trouble accessing the lesson materials right now. Please try again later." }]);
+        } finally {
+            setIsLessonsLoading(false);
+        }
+    }
+    fetchLessons();
+  }, []);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -32,14 +51,14 @@ export function ChatInterface() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || isLessonsLoading) return;
 
     const userMessage: Message = { role: "user", content: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
-    const result = await askAiTutorAction(input, allLessonsContent);
+    const result = await askAiTutorAction(input, lessonContent);
     
     const aiMessage: Message = {
       role: "assistant",
@@ -58,7 +77,7 @@ export function ChatInterface() {
       <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
         <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
           <div className="space-y-6">
-            {messages.length === 0 && (
+            {messages.length === 0 && !isLessonsLoading && (
                 <div className="text-center text-muted-foreground p-8">
                     <Bot className="h-12 w-12 mx-auto mb-4"/>
                     <p>Ready to learn! Ask a question to get started.</p>
@@ -95,13 +114,14 @@ export function ChatInterface() {
                 )}
               </div>
             ))}
-             {isLoading && (
+             {(isLoading || isLessonsLoading) && (
               <div className="flex items-start gap-3 justify-start">
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="bg-primary text-primary-foreground"><Bot /></AvatarFallback>
                 </Avatar>
                 <div className="p-3 rounded-lg bg-muted flex items-center">
                     <Loader2 className="h-5 w-5 animate-spin" />
+                    {isLessonsLoading && <span className="ml-2 text-sm text-muted-foreground">Loading lesson context...</span>}
                 </div>
               </div>
             )}
@@ -119,8 +139,9 @@ export function ChatInterface() {
                     handleSubmit(e);
                 }
             }}
+            disabled={isLoading || isLessonsLoading}
           />
-          <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+          <Button type="submit" size="icon" disabled={isLoading || !input.trim() || isLessonsLoading}>
             <Send className="h-4 w-4" />
           </Button>
         </form>

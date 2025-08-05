@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { BrainCircuit, LayoutDashboard, School, MessageSquare, Settings, Badge, LogOut, PanelLeft, Bell } from 'lucide-react';
 import { UserNav } from './user-nav';
+import { logout } from '@/app/actions';
 
 const navItems = [
   { href: '/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
@@ -69,8 +70,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild tooltip={{ children: 'Logout', side: 'right' }}>
-                        <Link href="/">
+                    <SidebarMenuButton 
+                      onClick={() => logout()} 
+                      asChild 
+                      tooltip={{ children: 'Logout', side: 'right' }}
+                    >
+                        <Link href="#">
                             <LogOut />
                             <span>Logout</span>
                         </Link>

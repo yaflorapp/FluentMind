@@ -13,10 +13,7 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    const decodedIdToken = await auth.verifySessionCookie(session, true);
-    // You can add user details to request headers here if needed
-    // const requestHeaders = new Headers(request.headers);
-    // requestHeaders.set('X-User-Id', decodedIdToken.uid);
+    await auth.verifySessionCookie(session, true);
     
     if (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')) {
       return NextResponse.redirect(new URL('/dashboard', request.url));

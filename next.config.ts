@@ -18,6 +18,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    trustHostHeader: false,
+  },
 };
 
 export default nextConfig;

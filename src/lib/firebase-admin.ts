@@ -1,4 +1,5 @@
 import admin from 'firebase-admin';
+import { lessons } from './placeholder-data';
 
 if (!admin.apps.length) {
   try {
@@ -16,3 +17,22 @@ if (!admin.apps.length) {
 
 export const auth = admin.auth();
 export const db = admin.firestore();
+
+// Seed the database with lessons if it's empty
+const seedDatabase = async () => {
+    const lessonsCollection = db.collection('lessons');
+    const snapshot = await lessonsCollection.limit(1).get();
+
+    if (snapshot.empty) {
+        console.log('No lessons found in database, seeding...');
+        const batch = db.batch();
+        lessons.forEach(lesson => {
+            const docRef = lessonsCollection.doc(lesson.id);
+            batch.set(docRef, lesson);
+        });
+        await batch.commit();
+        console.log('Database seeded with lessons.');
+    }
+};
+
+seedDatabase().catch(console.error);

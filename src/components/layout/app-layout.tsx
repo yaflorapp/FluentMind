@@ -20,7 +20,7 @@ import {
   SidebarGroupLabel,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { BrainCircuit, LayoutDashboard, School, MessageSquare, Settings, LogOut, PanelLeft, Bell, BarChart, PlusCircle, Shield } from 'lucide-react';
+import { BrainCircuit, LayoutDashboard, School, MessageSquare, Settings, LogOut, PanelLeft, Bell, BarChart, PlusCircle, Shield, BookOpen } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { logout } from '@/app/actions';
 
@@ -37,6 +37,7 @@ const classroomNavItems = [
 
 const adminNavItems = [
     { href: '/admin/users', icon: <Shield />, label: 'User Management' },
+    { href: '/admin/courses', icon: <BookOpen />, label: 'Course Management' },
 ]
 
 export function AppLayout({ children }: { children: React.ReactNode }) {

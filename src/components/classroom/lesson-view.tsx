@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { lessons } from '@/lib/placeholder-data';
 import type { Lesson } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,11 +9,43 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { LessonSummary } from './lesson-summary';
 import { PracticeQuestions } from './practice-questions';
-import { Lock, PlayCircle, FileText } from 'lucide-react';
+import { Lock, PlayCircle, FileText, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, orderBy } from "firebase/firestore";
 
 export function LessonView() {
-  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(lessons[0]);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+
+  useEffect(() => {
+    const fetchLessons = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "lessons"));
+        const fetchedLessons = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Lesson));
+        setLessons(fetchedLessons);
+        if (fetchedLessons.length > 0) {
+            setSelectedLesson(fetchedLessons[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching lessons: ", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLessons();
+  }, []);
+
+
+  if (isLoading) {
+    return (
+        <div className="flex justify-center items-center h-full">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    )
+  }
 
   return (
     <div className="grid md:grid-cols-[300px_1fr] gap-8 h-full">

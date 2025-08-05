@@ -65,7 +65,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <Link href={item.href}>
                       {item.icon}
                       <span>{item.label}</span>
-                      {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

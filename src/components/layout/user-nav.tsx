@@ -13,10 +13,10 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { logout } from "@/app/actions"
+import Link from "next/link"
 
 export function UserNav() {
   return (
@@ -40,11 +40,11 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            Profile
+           <DropdownMenuItem asChild>
+            <Link href="/account">Account</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            Billing
+          <DropdownMenuItem asChild>
+            <Link href="/pricing">Billing</Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
             Settings

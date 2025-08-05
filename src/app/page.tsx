@@ -1,10 +1,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
-import { Check, BrainCircuit, BookOpen, TrendingUp } from 'lucide-react';
+import { BrainCircuit, BookOpen, TrendingUp } from 'lucide-react';
+import { PricingTiers } from '@/components/pricing/pricing-tiers';
 
 const features = [
   {
@@ -21,37 +22,6 @@ const features = [
     icon: <TrendingUp className="w-8 h-8 text-primary" />,
     title: 'Progress Tracking',
     description: 'Monitor your progress with detailed analytics. Identify your strengths and weaknesses to focus your efforts where they matter most.',
-  },
-];
-
-const pricingTiers = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: '/ month',
-    description: 'Get started with the basics and experience the power of AI learning.',
-    features: [
-      'Access to 3 lessons',
-      'Limited AI Tutor chat',
-      'Basic progress tracking',
-    ],
-    cta: 'Start for Free',
-    variant: 'secondary' as const,
-  },
-  {
-    name: 'Pro',
-    price: '$15',
-    period: '/ month',
-    description: 'Unlock the full potential of FluentMind with unlimited access and premium features.',
-    features: [
-      'Unlimited lesson access',
-      'Unlimited AI Tutor chat',
-      'Advanced progress analytics',
-      'Priority support',
-    ],
-    cta: 'Upgrade to Pro',
-    variant: 'default' as const,
-    highlight: true,
   },
 ];
 
@@ -112,35 +82,7 @@ export default function WelcomePage() {
             <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-12">
               Simple, transparent pricing. Get started for free, then upgrade when you're ready.
             </p>
-            <div className="flex justify-center items-stretch gap-8 max-w-4xl mx-auto flex-col md:flex-row">
-              {pricingTiers.map((tier) => (
-                <Card key={tier.name} className={`flex flex-col ${tier.highlight ? 'border-primary ring-2 ring-primary' : ''}`}>
-                  <CardHeader>
-                    <CardTitle className="text-primary">{tier.name}</CardTitle>
-                    <div className="text-4xl font-bold flex items-baseline">
-                      {tier.price}
-                      <span className="text-xl font-normal text-muted-foreground">{tier.period}</span>
-                    </div>
-                    <CardDescription>{tier.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-1">
-                    <ul className="space-y-3">
-                      {tier.features.map((feature) => (
-                        <li key={feature} className="flex items-center gap-2">
-                          <Check className="w-5 h-5 text-green-500" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                  <CardFooter>
-                    <Button asChild className="w-full" variant={tier.variant}>
-                      <Link href="/signup">{tier.cta}</Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
+            <PricingTiers />
           </div>
         </section>
       </main>

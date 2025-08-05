@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { auth } from '@/lib/firebase-admin';
 
+export const runtime = 'nodejs';
+
 export async function middleware(request: NextRequest) {
   const session = request.cookies.get('__session')?.value;
 

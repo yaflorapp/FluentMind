@@ -50,8 +50,10 @@ export function SignupForm() {
         description: result.success,
       });
       router.push("/login");
+    } else if (result.error?.form) {
+        form.setError("root", { message: result.error.form.join(', ') });
     } else if (result.error) {
-      toast({
+       toast({
         variant: "destructive",
         title: "Signup Failed",
         description: "Something went wrong. Please try again.",
@@ -101,6 +103,9 @@ export function SignupForm() {
             </FormItem>
           )}
         />
+        {form.formState.errors.root && (
+            <p className="text-sm font-medium text-destructive">{form.formState.errors.root.message}</p>
+        )}
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Create Account

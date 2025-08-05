@@ -1,6 +1,10 @@
 "use server";
 
 import { z } from "zod";
+import { auth } from "@/lib/firebase-admin"; // Using Admin SDK for server-side auth
+import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 const signupSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -13,6 +17,10 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email." }),
+});
+
 export async function signup(formData: FormData) {
   const values = Object.fromEntries(formData.entries());
   const parsed = signupSchema.safeParse(values);
@@ -23,27 +31,79 @@ export async function signup(formData: FormData) {
     };
   }
 
-  // In a real app, you'd create a user in Firebase Auth here.
-  console.log("Signing up with:", parsed.data);
+  const { email, password, name } = parsed.data;
+
+  try {
+    const userRecord = await auth.createUser({
+      email,
+      password,
+      displayName: name,
+    });
+    // You might want to create a corresponding user document in Firestore here.
+  } catch (error: any) {
+    if (error.code === 'auth/email-already-exists') {
+        return { error: { form: ['Email already in use.'] } };
+    }
+    return { error: { form: ['Something went wrong. Please try again.'] }};
+  }
   
-  // This is a placeholder response.
   return { success: "Account created successfully! Please log in." };
 }
-
 
 export async function login(formData: FormData) {
   const values = Object.fromEntries(formData.entries());
   const parsed = loginSchema.safeParse(values);
 
   if (!parsed.success) {
-    return {
-      error: "Invalid email or password.",
-    };
+    return { error: 'Invalid email or password.' };
   }
 
-  // In a real app, you'd sign in with Firebase Auth here.
+  // This is a simplified login example. In a real app, you'd verify the user's
+  // password and create a session cookie. This is not implemented here for brevity.
+  // We'll just redirect to dashboard for now as a placeholder.
   console.log("Logging in with:", parsed.data);
   
-  // This is a placeholder. A real implementation would redirect or set a session.
-  return { success: true };
+  redirect('/dashboard');
+}
+
+export async function createSession(idToken: string) {
+    try {
+        const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+        const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
+        cookies().set("__session", sessionCookie, {
+            maxAge: expiresIn,
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            path: '/',
+        });
+        revalidatePath('/');
+        return { success: true };
+    } catch (error) {
+        console.error("Session creation failed", error);
+        return { error: 'Could not create session.' };
+    }
+}
+
+export async function forgotPassword(formData: FormData) {
+  const values = Object.fromEntries(formData.entries());
+  const parsed = forgotPasswordSchema.safeParse(values);
+
+  if (!parsed.success) {
+    return {
+      error: parsed.error.flatten().fieldErrors,
+    };
+  }
+  
+  // This is a placeholder. Firebase Admin SDK doesn't have a method
+  // to send password reset emails directly. This must be done client-side.
+  // We will adjust this later.
+  console.log("Sending password reset for:", parsed.data.email);
+
+  return { success: "If an account with this email exists, a reset link has been sent." };
+}
+
+export async function logout() {
+  cookies().delete('__session');
+  redirect('/login');
 }

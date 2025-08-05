@@ -5,12 +5,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { login } from "@/app/actions";
+import { createSession } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -34,23 +36,42 @@ export function LoginForm() {
 
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
-    const formData = new FormData();
-    formData.append("email", values.email);
-    formData.append("password", values.password);
+    
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+      const idToken = await userCredential.user.getIdToken();
+      
+      const sessionResult = await createSession(idToken);
 
-    const result = await login(formData);
+      if (sessionResult.success) {
+        toast({
+          title: "Login Successful",
+          description: "Welcome back! Redirecting to your dashboard...",
+        });
+        router.push("/dashboard");
+      } else {
+        throw new Error(sessionResult.error || "Login failed");
+      }
 
-    if (result.success) {
-      toast({
-        title: "Login Successful",
-        description: "Welcome back! Redirecting to your dashboard...",
-      });
-      router.push("/dashboard");
-    } else if (result.error) {
+    } catch (error: any) {
+      console.error(error);
+      let errorMessage = "An unknown error occurred.";
+      if (error.code) {
+        switch (error.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            errorMessage = 'Invalid email or password.';
+            break;
+          default:
+            errorMessage = 'Login failed. Please try again.';
+        }
+      }
+      form.setError("root", { message: errorMessage });
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: result.error,
+        description: errorMessage,
       });
       setIsLoading(false);
     }
@@ -85,6 +106,9 @@ export function LoginForm() {
             </FormItem>
           )}
         />
+        {form.formState.errors.root && (
+          <p className="text-sm font-medium text-destructive">{form.formState.errors.root.message}</p>
+        )}
         <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Log In

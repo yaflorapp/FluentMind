@@ -1,6 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { createSession } from "@/app/actions";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -32,9 +37,34 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   }
 
 export function OauthButtons() {
-  const handleGoogleSignIn = () => {
-    // In a real app, this would trigger Firebase Google sign-in popup.
-    console.log("Attempting Google sign-in...");
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      const idToken = await userCredential.user.getIdToken();
+      
+      const sessionResult = await createSession(idToken);
+
+       if (sessionResult.success) {
+        toast({
+          title: "Login Successful",
+          description: "Welcome! Redirecting to your dashboard...",
+        });
+        router.push("/dashboard");
+      } else {
+        throw new Error(sessionResult.error || "Google Sign-In failed");
+      }
+    } catch (error) {
+      console.error("Google sign-in error", error);
+       toast({
+        variant: "destructive",
+        title: "Sign-In Failed",
+        description: "Could not sign in with Google. Please try again.",
+      });
+    }
   };
 
   return (

@@ -5,3 +5,22 @@ runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+  # Add secret environment variables needed by your app.
+  # You can create these secrets using the Firebase CLI:
+  # firebase apphosting:secrets:set SECRET_NAME --project PROJECT_ID
+  # For example:
+  # firebase apphosting:secrets:set GEMINI_API_KEY --project=fluentmind-ai-tutor
+  # firebase apphosting:secrets:set STRIPE_SECRET_KEY --project=fluentmind-ai-tutor
+  # firebase apphosting:secrets:set FIREBASE_PRIVATE_KEY --project=fluentmind-ai-tutor
+  # ... and so on for all secrets in your .env file.
+  # You will be prompted to enter the secret value.
+  # Note: For FIREBASE_PRIVATE_KEY, you might need to wrap the multi-line
+  # key in quotes when prompted.
+  secrets:
+    - GEMINI_API_KEY
+    - STRIPE_SECRET_KEY
+    - FIREBASE_PROJECT_ID
+    - FIREBASE_CLIENT_EMAIL
+    - FIREBASE_PRIVATE_KEY
+    - ADMIN_EMAIL
+    - NEXT_PUBLIC_STRIPE_PRO_PRICE_ID

@@ -6,7 +6,14 @@ export function middleware(request: NextRequest) {
   const session = request.cookies.get('__session')?.value;
 
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup') || request.nextUrl.pathname.startsWith('/forgot-password');
-  const isProtected = request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/classroom') || request.nextUrl.pathname.startsWith('/tutor');
+  
+  const isProtected = request.nextUrl.pathname.startsWith('/dashboard') 
+    || request.nextUrl.pathname.startsWith('/classroom') 
+    || request.nextUrl.pathname.startsWith('/tutor')
+    || request.nextUrl.pathname.startsWith('/account')
+    || request.nextUrl.pathname.startsWith('/performance')
+    || request.nextUrl.pathname.startsWith('/pricing')
+    || request.nextUrl.pathname.startsWith('/admin');
 
   if (!session && isProtected) {
     const url = request.nextUrl.clone();

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -19,14 +20,14 @@ import {
   SidebarGroupLabel,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { BrainCircuit, LayoutDashboard, School, MessageSquare, Settings, LogOut, PanelLeft, Bell, BarChart, PlusCircle } from 'lucide-react';
+import { BrainCircuit, LayoutDashboard, School, MessageSquare, Settings, LogOut, PanelLeft, Bell, BarChart, PlusCircle, Shield } from 'lucide-react';
 import { UserNav } from './user-nav';
 import { logout } from '@/app/actions';
 
 const mainNavItems = [
   { href: '/dashboard', icon: <LayoutDashboard />, label: 'Dashboard' },
   { href: '/performance', icon: <BarChart />, label: 'Performance' },
-  { href: '/tutor', icon: <MessageSquare />, label: 'AI Tutor', badge: 'New' },
+  { href: '/tutor', icon: <MessageSquare />, label: 'AI Tutor' },
 ];
 
 const classroomNavItems = [
@@ -34,8 +35,13 @@ const classroomNavItems = [
     { href: '/classroom/generate', icon: <PlusCircle />, label: 'Generate Course', isPro: true },
 ];
 
+const adminNavItems = [
+    { href: '/admin/users', icon: <Shield />, label: 'User Management' },
+]
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isAdminSection = pathname.startsWith('/admin');
 
   return (
     <SidebarProvider>
@@ -85,12 +91,33 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     ))}
                 </SidebarMenu>
             </SidebarGroup>
+            {isAdminSection && (
+                 <SidebarGroup>
+                    <SidebarGroupLabel>Admin</SidebarGroupLabel>
+                    <SidebarMenu>
+                        {adminNavItems.map((item) => (
+                            <SidebarMenuItem key={item.href}>
+                                <SidebarMenuButton
+                                    asChild
+                                    isActive={pathname.startsWith(item.href)}
+                                    tooltip={{ children: item.label, side: 'right' }}
+                                >
+                                    <Link href={item.href}>
+                                    {item.icon}
+                                    <span>{item.label}</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        ))}
+                    </SidebarMenu>
+                </SidebarGroup>
+            )}
           </SidebarContent>
           <SidebarFooter className="p-4 flex flex-col gap-2">
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild tooltip={{ children: 'Settings', side: 'right' }}>
-                        <Link href="#">
+                        <Link href="/account">
                             <Settings />
                             <span>Settings</span>
                         </Link>

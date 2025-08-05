@@ -19,14 +19,83 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Shield, User, Award, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { updateUserPlan, toggleAdminStatus } from "@/app/admin/users/actions";
 
 interface User {
   id: string;
   name?: string;
   email?: string;
-  plan?: string;
+  plan?: "Free" | "Pro";
   isAdmin?: boolean;
 }
+
+const UserActionsCell = ({ row }: { row: any }) => {
+    const user = row.original as User;
+    const { toast } = useToast();
+    const [isPending, startTransition] = React.useTransition();
+
+    const handlePlanChange = (plan: "Free" | "Pro") => {
+        startTransition(async () => {
+            const result = await updateUserPlan(user.id, plan);
+            if (result.error) {
+                toast({ variant: "destructive", title: "Error", description: result.error });
+            } else {
+                toast({ title: "Success", description: `${user.name || user.email}'s plan updated to ${plan}.` });
+            }
+        });
+    };
+
+    const handleAdminToggle = () => {
+        startTransition(async () => {
+            const result = await toggleAdminStatus(user.id, !!user.isAdmin);
+            if (result.error) {
+                toast({ variant: "destructive", title: "Error", description: result.error });
+            } else {
+                toast({ title: "Success", description: `Admin status for ${user.name || user.email} has been updated.` });
+            }
+        });
+    };
+    
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleAdminToggle} disabled={isPending}>
+                    {user.isAdmin ? <User className="mr-2" /> : <Shield className="mr-2" />}
+                    {user.isAdmin ? 'Remove Admin' : 'Make Admin'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                 <DropdownMenuLabel>Change Plan</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handlePlanChange("Pro")} disabled={isPending || user.plan === 'Pro'}>
+                    <Award className="mr-2" />
+                    Set to Pro
+                </DropdownMenuItem>
+                 <DropdownMenuItem onClick={() => handlePlanChange("Free")} disabled={isPending || user.plan !== 'Pro'}>
+                    <User className="mr-2" />
+                    Set to Free
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -55,10 +124,7 @@ export const columns: ColumnDef<User>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      // Placeholder for future actions like edit/delete
-      return <Button variant="ghost" size="sm">Edit</Button>;
-    },
+    cell: UserActionsCell,
   },
 ];
 

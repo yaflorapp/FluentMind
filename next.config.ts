@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
+    serverActions: {
+      bodySizeLimit: '4.5mb', // Increase body size limit for audio uploads
+    },
     trustHostHeader: false,
   },
 };

@@ -1,3 +1,4 @@
+
 import admin from 'firebase-admin';
 
 // This is temporary, just for seeding.
@@ -47,13 +48,20 @@ const lessons = [
 
 if (!admin.apps.length) {
   try {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
+    // When running in a Google Cloud environment (like App Hosting),
+    // the SDK can automatically find the service account credentials.
+    if (process.env.NODE_ENV === 'production') {
+        admin.initializeApp();
+    } else {
+        // For local development, use the service account key file.
+        admin.initializeApp({
+            credential: admin.credential.cert({
+                projectId: process.env.FIREBASE_PROJECT_ID,
+                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+            }),
+        });
+    }
   } catch (error: any) {
     console.error('Firebase admin initialization error', error.stack);
   }
@@ -64,18 +72,26 @@ export const db = admin.firestore();
 
 // Seed the database with lessons if it's empty
 const seedDatabase = async () => {
-    const lessonsCollection = db.collection('lessons');
-    const snapshot = await lessonsCollection.limit(1).get();
+    // Only attempt to seed in a non-production environment
+    if (process.env.NODE_ENV !== 'production') {
+        try {
+            const lessonsCollection = db.collection('lessons');
+            const snapshot = await lessonsCollection.limit(1).get();
 
-    if (snapshot.empty) {
-        console.log('No lessons found in database, seeding...');
-        const batch = db.batch();
-        lessons.forEach(lesson => {
-            const docRef = lessonsCollection.doc(lesson.id);
-            batch.set(docRef, lesson);
-        });
-        await batch.commit();
-        console.log('Database seeded with lessons.');
+            if (snapshot.empty) {
+                console.log('No lessons found in database, seeding...');
+                const batch = db.batch();
+                lessons.forEach(lesson => {
+                    const docRef = lessonsCollection.doc(lesson.id);
+                    batch.set(docRef, lesson);
+                });
+                await batch.commit();
+                console.log('Database seeded with lessons.');
+            }
+        } catch(err) {
+            // It's possible the Firestore emulator isn't running, so we'll just log the error.
+            console.warn("Could not connect to Firestore to seed database. If you are running locally, ensure the emulator is running.");
+        }
     }
 };
 

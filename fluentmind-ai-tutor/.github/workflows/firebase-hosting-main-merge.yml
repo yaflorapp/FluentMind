@@ -1,0 +1,23 @@
+# This workflow is triggered on pushes to the main branch.
+# It builds and deploys the Next.js app to Firebase App Hosting.
+
+name: Deploy to Firebase App Hosting on merge
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build_and_deploy:
+    # This comment is to force a new commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --legacy-peer-deps && npm run build
+      - uses: FirebaseExtended/action-hosting-deploy@v0.9.0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_FLUENTMIND_AI_TUTOR }}'
+          projectId: fluentmind-ai-tutor

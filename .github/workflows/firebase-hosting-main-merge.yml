@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '20'
       - run: npm ci && npm run build
-      - uses: FirebaseExtended/firebase-hosting-action@v0.1.0-alpha.5
+      - uses: FirebaseExtended/firebase-hosting-action@a87cf3c636a3a4e1614e5c89c6e8f17a94278ba8
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_FLUENTMIND_AI_TUTOR }}'

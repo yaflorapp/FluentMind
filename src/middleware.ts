@@ -2,29 +2,17 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const session = request.cookies.get('__session')?.value;
 
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup') || request.nextUrl.pathname.startsWith('/forgot-password');
-  
-  const isProtected = request.nextUrl.pathname.startsWith('/dashboard') 
-    || request.nextUrl.pathname.startsWith('/classroom') 
-    || request.nextUrl.pathname.startsWith('/tutor')
-    || request.nextUrl.pathname.startsWith('/account')
-    || request.nextUrl.pathname.startsWith('/performance')
-    || request.nextUrl.pathname.startsWith('/pricing')
-    || request.nextUrl.pathname.startsWith('/admin');
-
-  if (!session && isProtected) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
+  // if there is no session cookie, and the user is trying to access a protected route, redirect to login
+  if (!session && !request.nextUrl.pathname.startsWith('/login') && !request.nextUrl.pathname.startsWith('/signup') && request.nextUrl.pathname !== '/') {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (session && isAuthPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
-    return NextResponse.redirect(url);
+  // if there is a session cookie, and the user is trying to access the login/signup page, redirect to dashboard
+  if (session && (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup'))) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
   
   return NextResponse.next();

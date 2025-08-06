@@ -8,6 +8,7 @@ on:
       - main
 jobs:
   build_and_deploy:
+    # This comment is to force a new commit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

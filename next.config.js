@@ -21,6 +21,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '4.5mb', // Increase body size limit for audio uploads
     },
+    serverComponentsExternalPackages: ['firebase-admin'],
   },
 };
 

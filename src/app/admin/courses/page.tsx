@@ -5,18 +5,26 @@ import { CourseTable } from '@/components/admin/courses/course-table';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import type { Lesson } from '@/lib/types';
 
+// Helper to convert Firestore Timestamps to strings
+function serializeData(doc: any) {
+    const data = doc.data();
+    for (const key in data) {
+        if (data[key] && typeof data[key] === 'object' && data[key].toDate) { // Check for Timestamp
+            data[key] = data[key].toDate().toISOString();
+        }
+    }
+    return { id: doc.id, ...data };
+}
+
 async function getCourses(): Promise<Lesson[]> {
     try {
         const coursesSnapshot = await db.collection('lessons').get();
         if (coursesSnapshot.empty) {
             return [];
         }
-        const courses = coursesSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-        } as Lesson));
-        
-        return JSON.parse(JSON.stringify(courses));
+        // Properly serialize the data to ensure it's client-component safe
+        const courses = coursesSnapshot.docs.map(doc => serializeData(doc) as Lesson);
+        return courses;
     } catch (error) {
         console.error("Failed to fetch courses:", error);
         return [];

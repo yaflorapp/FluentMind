@@ -73,7 +73,8 @@ export function LoginForm() {
         title: "Login Failed",
         description: errorMessage,
       });
-      setIsLoading(false);
+    } finally {
+        setIsLoading(false);
     }
   };
 

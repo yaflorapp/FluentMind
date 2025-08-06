@@ -60,22 +60,6 @@ export async function signup(formData: FormData) {
   return { success: "Account created successfully! Please log in." };
 }
 
-export async function login(formData: FormData) {
-  const values = Object.fromEntries(formData.entries());
-  const parsed = loginSchema.safeParse(values);
-
-  if (!parsed.success) {
-    return { error: 'Invalid email or password.' };
-  }
-
-  // This is a simplified login example. In a real app, you'd verify the user's
-  // password and create a session cookie. This is not implemented here for brevity.
-  // We'll just redirect to dashboard for now as a placeholder.
-  console.log("Logging in with:", parsed.data);
-  
-  redirect('/dashboard');
-}
-
 export async function createSession(idToken: string) {
     try {
         const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
@@ -83,7 +67,7 @@ export async function createSession(idToken: string) {
         cookies().set("__session", sessionCookie, {
             maxAge: expiresIn,
             httpOnly: true,
-            secure: true,
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             path: '/',
         });

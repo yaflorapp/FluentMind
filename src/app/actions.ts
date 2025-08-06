@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { auth } from "@/lib/firebase-admin"; // Using Admin SDK for server-side auth
+import { auth, db } from "@/lib/firebase-admin"; // Using Admin SDK for server-side auth
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -39,8 +39,18 @@ export async function signup(formData: FormData) {
       password,
       displayName: name,
     });
-    // You might want to create a corresponding user document in Firestore here.
+    
+    // Create a corresponding user document in Firestore
+    await db.collection("users").doc(userRecord.uid).set({
+        name: name,
+        email: email,
+        plan: "Free", // Default plan
+        isAdmin: false, // Default role
+        createdAt: new Date().toISOString(),
+    });
+
   } catch (error: any) {
+    console.error("Signup Error:", error);
     if (error.code === 'auth/email-already-exists') {
         return { error: { form: ['Email already in use.'] } };
     }
